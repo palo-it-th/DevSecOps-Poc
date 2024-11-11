@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 type User struct {
@@ -25,12 +26,30 @@ var postIDCounter = 1
 func main() {
 	router := gin.Default()
 
+	router.Use(corsMiddleware())
+
 	router.POST("/register", register)
 	router.POST("/login", login)
 	router.POST("/post", createPost)
 	router.GET("/posts", getPosts)
 
-	router.Run(":8080")
+	router.Run(":3402")
+}
+
+func corsMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Authorization")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(http.StatusNoContent)
+			return
+		}
+
+		c.Next()
+	}
 }
 
 func register(c *gin.Context) {
