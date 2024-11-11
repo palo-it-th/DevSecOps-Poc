@@ -8,8 +8,10 @@ jobs:
     name: Build
     runs-on: ubuntu-20.04
     steps:
-      - name: Checkout code
+      - name: Checkout facebook-clone-backend
         uses: actions/checkout@v4
+        with:
+          repository: devsecops-poc/facebook-clone-backend
 
       - name: Build Docker
         run: docker build . -t devsecops-poc/facebook-clone-backend:${{ github.sha }}
