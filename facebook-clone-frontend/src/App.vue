@@ -33,7 +33,7 @@ export default {
     logout() {
       localStorage.removeItem('user');
       this.isAuthenticated = false;
-      this.$router.push('/login');
+      this.$router.push('/');
     },
   },
   watch: {

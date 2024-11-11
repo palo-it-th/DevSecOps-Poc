@@ -24,7 +24,7 @@ export default {
       try {
         const response = await login({ username: this.username, password: this.password });
         setUser(response.data);
-        this.$router.push('/');
+        this.$router.push('/posts');
       } catch (error) {
         alert('Login failed: ' + error.response.data.error);
       }
