@@ -32,6 +32,7 @@ func main() {
 	router.POST("/login", login)
 	router.POST("/post", createPost)
 	router.GET("/posts", getPosts)
+	router.GET("/health", healthCheck)
 
 	router.Run(":3402")
 }
@@ -93,4 +94,8 @@ func createPost(c *gin.Context) {
 
 func getPosts(c *gin.Context) {
 	c.JSON(http.StatusOK, posts)
+}
+
+func healthCheck(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"status": "healthy"})
 }
