@@ -4,10 +4,11 @@
       <h1>Facebook Clone</h1>
       <nav>
         <router-link to="/">Home</router-link> |
-        <router-link to="/register">Register</router-link> |
-        <router-link to="/login">Login</router-link> |
-        <router-link to="/create-post">Create Post</router-link> |
-        <router-link to="/posts">View Posts</router-link>
+        <router-link v-if="!isAuthenticated" to="/register">Register</router-link> |
+        <router-link v-if="!isAuthenticated" to="/login">Login</router-link> |
+        <router-link v-if="isAuthenticated" to="/create-post">Create Post</router-link> |
+        <router-link v-if="isAuthenticated" to="/posts">View Posts</router-link> |
+        <button v-if="isAuthenticated" @click="logout">Logout</button>
       </nav>
     </header>
     <main>
@@ -19,6 +20,28 @@
 <script>
 export default {
   name: 'App',
+  data() {
+    return {
+      isAuthenticated: false,
+    };
+  },
+  created() {
+    // Check if the user is already logged in
+    this.isAuthenticated = !!localStorage.getItem('user');
+  },
+  methods: {
+    logout() {
+      localStorage.removeItem('user');
+      this.isAuthenticated = false;
+      this.$router.push('/login');
+    },
+  },
+  watch: {
+    // React to changes in authentication status
+    $route() {
+      this.isAuthenticated = !!localStorage.getItem('user');
+    },
+  },
 };
 </script>
 
@@ -42,4 +65,12 @@ a {
 a:hover {
   text-decoration: underline;
 }
+button {
+  background-color: #f0f0f0;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
 </style>
+
+
