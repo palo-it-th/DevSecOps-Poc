@@ -1,20 +1,25 @@
 name: Run Security Check
-
 on:
   push:
     branches:
       - main
-
 jobs:
-  trivy-scan:
-    runs-on: ubuntu-latest
-
+  build:
+    name: Build
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Set up Trivy
+      - name: Build Docker
+        run: docker build . -t devsecops-poc/facebook-clone-backend:${{ github.sha }}
+
+      - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.28.0
-
-      - name: Run Trivy scan
-        run: trivy fs --exit-code 1 --severity HIGH,CRITICAL .
+        with:
+          image-ref: 'docker.io/devsecops-poc/facebook-clone-backend:${{ github.sha }}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
