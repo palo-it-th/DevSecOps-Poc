@@ -1,31 +1,48 @@
 <template>
-  <div>
-    <h2>Posts</h2>
-    <ul>
-      <li v-for="post in posts" :key="post.id">
-        <strong>User {{ post.user_id }}:</strong> {{ post.content }}
-      </li>
-    </ul>
-  </div>
-</template>
-
-<script>
-import apiClient from 'axios';
-
-export default {
-  data() {
-    return {
-      posts: [],
-    };
-  },
-  async created() {
-    this.fetchPosts();
-  },
-  methods: {
-    async fetchPosts() {
-      const response = await apiClient.get('/posts');
-      this.posts = response.data;
+    <div class="post-list">
+      <h2>All Posts</h2>
+      <div v-if="posts.length === 0">No posts available</div>
+      <ul>
+        <li v-for="post in posts" :key="post.id" class="post-item">
+          <strong>{{ post.user_id }}</strong>: {{ post.content }}
+        </li>
+      </ul>
+    </div>
+  </template>
+  
+  <script>
+  import { getPosts } from '@/api/apiClient';
+  
+  export default {
+    data() {
+      return {
+        posts: [],
+      };
     },
-  },
-};
-</script>
+    async created() {
+      await this.fetchPosts();
+    },
+    methods: {
+      async fetchPosts() {
+        try {
+          const response = await getPosts();
+          this.posts = response.data;
+        } catch (error) {
+          alert('Failed to fetch posts: ' + error.response?.data?.error || error.message);
+        }
+      },
+    },
+  };
+  </script>
+  
+  <style scoped>
+  .post-list {
+    max-width: 600px;
+    margin: auto;
+  }
+  .post-item {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+  }
+  </style>
+  

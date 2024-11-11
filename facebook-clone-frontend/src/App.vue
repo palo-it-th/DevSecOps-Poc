@@ -1,43 +1,24 @@
 <template>
   <div id="app">
-    <nav>
+    <header>
       <h1>Facebook Clone</h1>
-      <ul>
-        <li><router-link to="/">Home</router-link></li>
-        <li v-if="!isAuthenticated"><router-link to="/register">Register</router-link></li>
-        <li v-if="!isAuthenticated"><router-link to="/login">Login</router-link></li>
-        <li v-if="isAuthenticated"><button @click="logout">Logout</button></li>
-      </ul>
-    </nav>
-
-    <router-view />
+      <nav>
+        <router-link to="/">Home</router-link> |
+        <router-link to="/register">Register</router-link> |
+        <router-link to="/login">Login</router-link> |
+        <router-link to="/create-post">Create Post</router-link> |
+        <router-link to="/posts">View Posts</router-link>
+      </nav>
+    </header>
+    <main>
+      <router-view />
+    </main>
   </div>
 </template>
 
 <script>
 export default {
-  data() {
-    return {
-      isAuthenticated: false,
-    };
-  },
-  created() {
-    // Check if the user is already logged in
-    this.isAuthenticated = !!localStorage.getItem('user');
-  },
-  methods: {
-    logout() {
-      localStorage.removeItem('user');
-      this.isAuthenticated = false;
-      this.$router.push('/login');
-    },
-  },
-  watch: {
-    // React to changes in authentication status
-    $route() {
-      this.isAuthenticated = !!localStorage.getItem('user');
-    },
-  },
+  name: 'App',
 };
 </script>
 
@@ -45,33 +26,20 @@ export default {
 #app {
   text-align: center;
 }
-
-nav {
-  background-color: #4267b2;
-  padding: 1rem;
+header {
+  background: #3b5998;
   color: white;
+  padding: 10px;
 }
-
-nav h1 {
-  margin: 0;
+nav {
+  margin-bottom: 20px;
 }
-
-ul {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
+a {
+  color: #fff;
+  text-decoration: none;
+  margin: 0 10px;
 }
-
-ul li {
-  display: inline;
-}
-
-button {
-  background-color: #f0f0f0;
-  border: none;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
+a:hover {
+  text-decoration: underline;
 }
 </style>
