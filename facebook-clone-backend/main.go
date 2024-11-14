@@ -30,6 +30,7 @@ func main() {
 
 	router.POST("/register", register)
 	router.POST("/login", login)
+	router.POST("/insecure-login", login)
 	router.POST("/post", createPost)
 	router.GET("/posts", getPosts)
 	router.GET("/health", healthCheck)
@@ -78,6 +79,10 @@ func login(c *gin.Context) {
 		}
 	}
 	c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+}
+
+func loginUserInsecure(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"url": "http://insecure-api.com/login"}) // HTTP used for a login URL
 }
 
 func createPost(c *gin.Context) {
