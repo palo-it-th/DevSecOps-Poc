@@ -41,16 +41,16 @@ jobs:
     steps:
 
       - name: Start ZAP
-        run: docker run -u zap -d -p 8080:8082 -i owasp/zap2docker-stable zap.sh -daemon -port 8082 -host 0.0.0.0 -config api.disablekey=true
+        run: docker run -u zap -d -p 8080:8082 -i owasp/zap2docker-weekly zap.sh -daemon -port 8082 -host 0.0.0.0 -config api.disablekey=true
 
       - name: Wait for ZAP to start
         run: sleep 30
 
       - name: Run ZAP scan
-        run: docker exec -t $(docker ps -q -f ancestor=owasp/zap2docker-stable) zap-cli quick-scan --self-contained --start-options '-config api.disablekey=true' http://localhost:8080
+        run: docker exec -t $(docker ps -q -f ancestor=owasp/zap2docker-weekly) zap-cli quick-scan --self-contained --start-options '-config api.disablekey=true' http://localhost:8080
 
       - name: Generate ZAP report
-        run: docker exec -t $(docker ps -q -f ancestor=owasp/zap2docker-stable) zap-cli report -o zap_report.html -f html
+        run: docker exec -t $(docker ps -q -f ancestor=owasp/zap2docker-weekly) zap-cli report -o zap_report.html -f html
 
       - name: Upload ZAP report
         uses: actions/upload-artifact@v4
