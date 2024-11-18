@@ -53,7 +53,7 @@ jobs:
         run: docker exec -t $(docker ps -q -f ancestor=owasp/zap2docker-stable) zap-cli report -o zap_report.html -f html
 
       - name: Upload ZAP report
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: ZAP Report
           path: zap_report.html
