@@ -1,0 +1,39 @@
+name: Zap scan
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  start-application:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Build Docker
+        working-directory: facebook-clone-backend
+        run: docker build . -t devsecops-poc/facebook-clone-backend:${{ github.sha }}
+
+      - name: Run backend
+        run: docker run -d -p 8080:8080 devsecops-poc/facebook-clone-backend:${{ github.sha }}
+
+      - name: Set Up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Install Dependencies
+        working-directory: facebook-clone-frontend
+        run: npm install
+
+      - name: Run Frontend
+        working-directory: facebook-clone-frontend
+        run: npm serve
+
+
