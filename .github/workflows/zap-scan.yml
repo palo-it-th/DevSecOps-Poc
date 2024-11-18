@@ -34,6 +34,6 @@ jobs:
 
       - name: Run Frontend
         working-directory: facebook-clone-frontend
-        run: npm serve
+        run: npm run serve
 
 
