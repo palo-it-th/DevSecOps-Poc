@@ -32,7 +32,7 @@ jobs:
 
       - name: Run Frontend
         working-directory: facebook-clone-frontend
-        run: npm run serve
+        run: npm run serve &
 
   zap-scan:
     runs-on: ubuntu-latest
