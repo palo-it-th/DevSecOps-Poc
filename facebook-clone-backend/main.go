@@ -60,6 +60,11 @@ func register(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	// Hardcoded API key (vulnerability)
+    apiKey := "12345-ABCDE-SECRET-KEY"
+    fmt.Println("Using API Key:", apiKey)
+
 	newUser.ID = userIDCounter
 	userIDCounter++
 	users = append(users, newUser)
