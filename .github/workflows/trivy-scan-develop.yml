@@ -18,7 +18,6 @@ jobs:
           ignore-unfixed: true
           format: "sarif"
           output: "trivy-results.sarif"
-          severity: "CRITICAL,HIGH"
         env:
           TRIVY_SKIP_DB_UPDATE: true
           TRIVY_SKIP_JAVA_DB_UPDATE: true
