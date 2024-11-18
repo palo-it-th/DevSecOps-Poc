@@ -43,7 +43,7 @@ jobs:
     steps:
 
       - name: Start ZAP
-        run: docker run -u zap -d -p 8080:8080 -i owasp/zap2docker-stable zap.sh -daemon -port 8080 -host 0.0.0.0 -config api.disablekey=true
+        run: docker run -u zap -d -p 8080:8082 -i owasp/zap2docker-stable zap.sh -daemon -port 8082 -host 0.0.0.0 -config api.disablekey=true
 
       - name: Wait for ZAP to start
         run: sleep 30
