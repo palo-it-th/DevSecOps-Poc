@@ -19,7 +19,7 @@ jobs:
         run: docker build . -t devsecops-poc/facebook-clone-backend:${{ github.sha }}
 
       - name: Run backend
-        run: docker run -d -p 8080:8080 devsecops-poc/facebook-clone-backend:${{ github.sha }}
+        run: docker run -d -p 8080:3402 devsecops-poc/facebook-clone-backend:${{ github.sha }}
 
       - name: Set Up Node.js
         uses: actions/setup-node@v4
