@@ -96,8 +96,15 @@ func (repo *RepositoryProductsCommandImpl) UpdateProducts(ctx context.Context, p
 }
 
 func (repo *RepositoryProductsCommandImpl) DeleteProductsList(ctx context.Context, productIDList []int) error {
-	command := "DELETE FROM products WHERE product_id IN (?)"
-	_, err := repo.exec(ctx, command, []interface{}{productIDList})
+	// Vulnerable to SQL Injection
+	var strProductIDList []string
+	for _, id := range productIDList {
+		strProductIDList = append(strProductIDList, fmt.Sprintf("%d", id))
+	}
+	command := "DELETE FROM products WHERE product_id IN (" + strings.Join(strProductIDList, ",") + ")"
+	// Create empty interface slice
+	var emptySlice = make([]interface{}, 0)
+	_, err := repo.exec(ctx, command, emptySlice)
 	return err
 }
 
