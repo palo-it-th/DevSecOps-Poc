@@ -11,23 +11,6 @@ const routes = [
   { path: "/register", name: "Register", component: RegisterUser },
   { path: "/create-post", name: "CreatePost", component: CreatePost },
   { path: "/posts", name: "PostList", component: PostList },
-  // Vulnerable route
-  {
-    path: "/execute",
-    name: "Execute",
-    component: {
-      template: "<div>{{ result }}</div>",
-      data() {
-        return {
-          result: "",
-        };
-      },
-      created() {
-        const userInput = this.$route.query.code;
-        this.result = eval(userInput); // Dangerous: eval allows execution of arbitrary code
-      },
-    },
-  },
 ];
 
 const router = createRouter({
