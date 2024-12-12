@@ -76,6 +76,24 @@ func (h HttpHandlerImpl) DeleteProductByID(w http.ResponseWriter, r *http.Reques
 	httpresponse.Json(w, http.StatusOK, "success to delete product", nil)
 }
 
+func (h HttpHandlerImpl) DeleteProductsList(w http.ResponseWriter, r *http.Request) {
+	productIDList := []int{}
+	err := json.NewDecoder(r.Body).Decode(&productIDList)
+	if err != nil {
+		log.Err(err)
+		httpresponse.Err(w, err)
+		return
+	}
+
+	err = h.ProductService.DeleteProductsList(r.Context(), productIDList)
+	if err != nil {
+		httpresponse.Err(w, err)
+		return
+	}
+
+	httpresponse.Json(w, http.StatusOK, "success to delete product", nil)
+}
+
 func (h HttpHandlerImpl) CreateNewProduct(w http.ResponseWriter, r *http.Request) {
 	product := dto.ProductRequestBody{}
 	err := json.NewDecoder(r.Body).Decode(&product)

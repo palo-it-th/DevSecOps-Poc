@@ -14,6 +14,7 @@ type ProductService interface {
 	GetProductByProductID(ctx context.Context, productID int) (dto.ProductsResponse, error)
 	CreateNewProduct(ctx context.Context, data dto.ProductRequestBody) (*dto.ProductsResponse, error)
 	DeleteProduct(ctx context.Context, productID int) error
+	DeleteProductsList(ctx context.Context, productIDList []int) error
 }
 
 type ProductServiceImpl struct {
@@ -93,7 +94,7 @@ func (s ProductServiceImpl) DeleteProduct(ctx context.Context, productID int) er
 	return nil
 }
 
-func (s ProductServiceImpl) DeleteProductList(ctx context.Context, productIDList []int) error {
+func (s ProductServiceImpl) DeleteProductsList(ctx context.Context, productIDList []int) error {
 	err := s.ProductRepository.DeleteProductsList(ctx, productIDList)
 
 	if err != nil {
