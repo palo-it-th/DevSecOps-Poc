@@ -92,3 +92,14 @@ func (s ProductServiceImpl) DeleteProduct(ctx context.Context, productID int) er
 
 	return nil
 }
+
+func (s ProductServiceImpl) DeleteProductList(ctx context.Context, productIDList []int) error {
+	err := s.ProductRepository.DeleteProductsList(ctx, productIDList)
+
+	if err != nil {
+		log.Err(err).Msg("Error deleting product")
+		return err
+	}
+
+	return nil
+}

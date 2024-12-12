@@ -16,7 +16,7 @@ type RepositoryProductsCommand interface {
 	InsertProducts(ctx context.Context, products *productsmodel.Products) (*InsertResult, error)
 	UpdateProductsByFilter(ctx context.Context, products *productsmodel.Products, filter Filter, updatedFields ...ProductsField) error
 	UpdateProducts(ctx context.Context, products *productsmodel.Products, productid int32, updatedFields ...ProductsField) error
-	DeleteProductsList(ctx context.Context, filter Filter) error
+	DeleteProductsList(ctx context.Context, productIDList []int) error
 	DeleteProducts(ctx context.Context, productid int32) error
 }
 
@@ -95,9 +95,9 @@ func (repo *RepositoryProductsCommandImpl) UpdateProducts(ctx context.Context, p
 	return err
 }
 
-func (repo *RepositoryProductsCommandImpl) DeleteProductsList(ctx context.Context, filter Filter) error {
-	command := "DELETE FROM products WHERE " + filter.Query()
-	_, err := repo.exec(ctx, command, filter.Values())
+func (repo *RepositoryProductsCommandImpl) DeleteProductsList(ctx context.Context, productIDList []int) error {
+	command := "DELETE FROM products WHERE product_id IN (?)"
+	_, err := repo.exec(ctx, command, []interface{}{productIDList})
 	return err
 }
 
