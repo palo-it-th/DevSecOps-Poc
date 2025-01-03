@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -34,6 +35,7 @@ func main() {
 	router.POST("/post", createPost)
 	router.GET("/posts", getPosts)
 	router.GET("/health", healthCheck)
+	router.GET("/vulnerable-endpoint", vulnerableEndpoint)
 
 	router.Run(":3402")
 }
@@ -106,8 +108,15 @@ func healthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "healthy"})
 }
 
-// Vulnerable to XSS
-func greetUser(c *gin.Context) {
-	name := c.Query("name")
-	c.String(http.StatusOK, "Hello, "+name) // Unsanitized user input
+func vulnerableEndpoint(c *gin.Context) {
+	userInput := c.Query("input")
+
+	// SQL Injection Vulnerability (Dynamic Query Construction)
+	query := fmt.Sprintf("SELECT * FROM users WHERE username = '%s'", userInput)
+
+	// Log the query for demonstration (Exposing Sensitive Information)
+	fmt.Println("Executing query: ", query)
+
+	// Simulated response
+	c.JSON(http.StatusOK, gin.H{"result": "Query executed"})
 }
