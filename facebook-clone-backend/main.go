@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -61,10 +62,6 @@ func register(c *gin.Context) {
 		return
 	}
 
-	// Hardcoded API key (vulnerability)
-    apiKey := "12345-ABCDE-SECRET-KEY"
-    fmt.Println("Using API Key:", apiKey)
-
 	newUser.ID = userIDCounter
 	userIDCounter++
 	users = append(users, newUser)
@@ -108,4 +105,10 @@ func getPosts(c *gin.Context) {
 
 func healthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "healthy"})
+}
+
+// Vulnerable to XSS
+func greetUser(c *gin.Context) {
+	name := c.Query("name")
+	c.String(http.StatusOK, fmt.Sprintf("Hello, %s!", name)) // Unsanitized user input
 }
