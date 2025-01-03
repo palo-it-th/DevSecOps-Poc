@@ -37,14 +37,16 @@ func main() {
 	router.POST("/post", createPost)
 	router.GET("/posts", getPosts)
 	router.GET("/health", healthCheck)
+
 	// Vulnerable endpoint for SQL Injection
 	router.GET("/user/:username", getUserByUsername)
 
-	// Vulnerable endpoint for XSS
-	router.GET("/greet", greetUser)
+	// Vulnerable endpoint for insecure file upload
+	router.POST("/upload", uploadFile)
 
 	// Vulnerable endpoint for logging user input
 	router.POST("/log-input", logUserInput)
+
 	router.Run(":3402")
 }
 
@@ -92,10 +94,6 @@ func login(c *gin.Context) {
 	c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 }
 
-func loginUserInsecure(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"url": "http://insecure-api.com/login"}) // HTTP used for a login URL
-}
-
 func createPost(c *gin.Context) {
 	var newPost Post
 	if err := c.ShouldBindJSON(&newPost); err != nil {
@@ -137,12 +135,6 @@ func getUserByUsername(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-// Vulnerable to XSS
-func greetUser(c *gin.Context) {
-	name := c.Query("name")
-	c.String(http.StatusOK, fmt.Sprintf("<p>Hello, %s!</p>", name)) // Explicit HTML response
-}
-
 // Vulnerable to logging user input
 func logUserInput(c *gin.Context) {
 	var input map[string]string
@@ -152,7 +144,25 @@ func logUserInput(c *gin.Context) {
 	}
 
 	// Logging user input directly
-	log.Println("User input:", input["message"])
+	log.Printf("User input: %s", input["message"]) // Unsanitized user input
 
 	c.JSON(http.StatusOK, gin.H{"status": "logged"})
+}
+
+// Vulnerable to insecure file upload
+func uploadFile(c *gin.Context) {
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Save the uploaded file to the server without validation
+	err = c.SaveUploadedFile(file, fmt.Sprintf("./uploads/%s", file.Filename))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "file uploaded"})
 }
