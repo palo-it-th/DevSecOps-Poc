@@ -101,6 +101,16 @@ app.get("/vulnerable-endpoint", (req, res) => {
   }
 });
 
+
+// New vulnerability: Input validation issue
+app.post("/add-user", (req, res) => {
+  const { id, firstName, lastName, email, password } = req.body;
+
+  // No input validation
+  userData.push({ id, firstName, lastName, email, password });
+  res.send("User added successfully");
+});
+
 app.listen(PORT, () => {
   console.log("Server running");
 });
