@@ -111,19 +111,41 @@ app.post("/add-user", (req, res) => {
   res.send("User added successfully");
 });
 
-// New vulnerability: Insecure Direct Object Reference (IDOR)
-app.get("/user/:id", (req, res) => {
-  const userId = req.params.id;
 
-  // Directly accessing user data without authorization check
-  const user = userData.find((user) => user.id == userId);
-  if (user) {
-    res.send(user);
-  } else {
-    res.status(404).send("User not found");
+const mysql = require("mysql");
+
+// Set up a MySQL database connection (example configuration)
+const db = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "password",
+  database: "testdb",
+});
+
+db.connect((err) => {
+  if (err) {
+    console.error("Database connection failed:", err);
+    return;
   }
+  console.log("Connected to database");
+});
+
+// Vulnerable SQL Injection endpoint
+app.get("/search", (req, res) => {
+  const searchTerm = req.query.term; // Unsanitized user input
+  const query = `SELECT * FROM users WHERE firstName LIKE '%${searchTerm}%'`;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      res.status(500).send("Database error");
+      return;
+    }
+    res.send(results);
+  });
 });
 
 app.listen(PORT, () => {
   console.log("Server running");
 });
+
+
