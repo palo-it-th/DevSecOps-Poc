@@ -140,7 +140,7 @@ func getUserByUsername(c *gin.Context) {
 // Vulnerable to XSS
 func greetUser(c *gin.Context) {
 	name := c.Query("name")
-	c.String(http.StatusOK, fmt.Sprintf("Hello, %s!", name)) // Unsanitized user input
+	c.String(http.StatusOK, fmt.Sprintf("<p>Hello, %s!</p>", name)) // Explicit HTML response
 }
 
 // Vulnerable to logging user input
