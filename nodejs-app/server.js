@@ -111,6 +111,19 @@ app.post("/add-user", (req, res) => {
   res.send("User added successfully");
 });
 
+// New vulnerability: Insecure Direct Object Reference (IDOR)
+app.get("/user/:id", (req, res) => {
+  const userId = req.params.id;
+
+  // Directly accessing user data without authorization check
+  const user = userData.find((user) => user.id == userId);
+  if (user) {
+    res.send(user);
+  } else {
+    res.status(404).send("User not found");
+  }
+});
+
 app.listen(PORT, () => {
   console.log("Server running");
 });
