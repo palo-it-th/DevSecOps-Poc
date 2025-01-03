@@ -1,7 +1,9 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -35,8 +37,14 @@ func main() {
 	router.POST("/post", createPost)
 	router.GET("/posts", getPosts)
 	router.GET("/health", healthCheck)
-	router.GET("/vulnerable-endpoint", vulnerableEndpoint)
+	// Vulnerable endpoint for SQL Injection
+	router.GET("/user/:username", getUserByUsername)
 
+	// Vulnerable endpoint for XSS
+	router.GET("/greet", greetUser)
+
+	// Vulnerable endpoint for logging user input
+	router.POST("/log-input", logUserInput)
 	router.Run(":3402")
 }
 
@@ -108,15 +116,43 @@ func healthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "healthy"})
 }
 
-func vulnerableEndpoint(c *gin.Context) {
-	userInput := c.Query("input")
+// Vulnerable to SQL Injection
+func getUserByUsername(c *gin.Context) {
+	username := c.Param("username")
+	db, err := sql.Open("mysql", "user:password@tcp(127.0.0.1:3306)/dbname")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database connection error"})
+		return
+	}
+	defer db.Close()
 
-	// SQL Injection Vulnerability (Dynamic Query Construction)
-	query := fmt.Sprintf("SELECT * FROM users WHERE username = '%s'", userInput)
+	query := fmt.Sprintf("SELECT id, username, password FROM users WHERE username = '%s'", username)
+	row := db.QueryRow(query)
 
-	// Log the query for demonstration (Exposing Sensitive Information)
-	fmt.Println("Executing query: ", query)
+	var user User
+	if err := row.Scan(&user.ID, &user.Username, &user.Password); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+	c.JSON(http.StatusOK, user)
+}
 
-	// Simulated response
-	c.JSON(http.StatusOK, gin.H{"result": "Query executed"})
+// Vulnerable to XSS
+func greetUser(c *gin.Context) {
+	name := c.Query("name")
+	c.String(http.StatusOK, fmt.Sprintf("Hello, %s!", name)) // Unsanitized user input
+}
+
+// Vulnerable to logging user input
+func logUserInput(c *gin.Context) {
+	var input map[string]string
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Logging user input directly
+	log.Println("User input:", input["message"])
+
+	c.JSON(http.StatusOK, gin.H{"status": "logged"})
 }
