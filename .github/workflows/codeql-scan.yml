@@ -40,10 +40,11 @@ jobs:
 
       - if: matrix.build-mode == 'manual' && matrix.language == 'go'
         shell: bash
+        working-directory: ./facebook-clone-backend 
         run: |
           go mod tidy
           go mod vendor 
-          go build ./facebook-clone-backend 
+          go build ./...
 
       # Autobuild attempts to build any compiled languages (C/C++, C#, Go, Java, or Swift).
       # If this step fails, then you should remove it and run the build manually (see below)
