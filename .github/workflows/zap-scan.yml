@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - experiment/vulnerabilities-poc
   workflow_dispatch:
 
 jobs:
