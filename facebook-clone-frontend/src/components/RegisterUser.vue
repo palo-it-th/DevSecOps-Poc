@@ -26,6 +26,7 @@ export default {
   methods: {
     async handleRegister() {
       try {
+        console.log('Password:', this.password)
         const response = await register({
           username: this.username,
           password: this.password,

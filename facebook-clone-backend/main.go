@@ -94,7 +94,6 @@ func createPost(c *gin.Context) {
 	newPost.ID = postIDCounter
 	postIDCounter++
 	posts = append(posts, newPost)
-	// Directly render user input without sanitization
 	c.JSON(http.StatusOK, gin.H{"content": newPost.Content})
 }
 
