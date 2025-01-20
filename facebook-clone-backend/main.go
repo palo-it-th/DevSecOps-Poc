@@ -1,15 +1,18 @@
 package main
 
 import (
-	"net/http"
-
+	"database/sql"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	_ "github.com/mattn/go-sqlite3"
+	"net/http"
 )
 
 type User struct {
 	ID       int    `json:"id"`
 	Username string `json:"username"`
 	Password string `json:"password"`
+	IsAdmin  bool   `json:"is_admin"`
 }
 
 type Post struct {
@@ -22,15 +25,33 @@ var users []User
 var posts []Post
 var userIDCounter = 1
 var postIDCounter = 1
+var db *sql.DB
 
 func main() {
 	router := gin.Default()
+	var err error
+	db, err = sql.Open("sqlite3", "./test.db")
+	if err != nil {
+		fmt.Printf("Error opening database: %q\n", err)
+	}
+	defer db.Close()
+
+	// Create users table
+	_, cErr := db.Exec(`CREATE TABLE IF NOT EXISTS users (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		username TEXT,
+		password TEXT,
+		is_admin INTEGER
+	)`)
+	if cErr != nil {
+		fmt.Printf("Error creating users table: %q\n", cErr)
+	}
 
 	router.Use(corsMiddleware())
 
 	router.POST("/register", register)
-	router.POST("/login", login)
-	router.POST("/insecure-login", login)
+	router.POST("/login", loginWithSQLInjection)
+	router.POST("/insecure-login", loginWithSQLInjection)
 	router.POST("/post", createPost)
 	router.GET("/posts", getPosts)
 	router.GET("/health", healthCheck)
@@ -60,26 +81,53 @@ func register(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	newUser.ID = userIDCounter
-	userIDCounter++
-	users = append(users, newUser)
+	//newUser.ID = userIDCounter
+	//userIDCounter++
+	//users = append(users, newUser)
+	query := "INSERT INTO users (username, password, is_admin) VALUES ('" + newUser.Username + "', '" + newUser.Password + "', 0)"
+	_, err := db.Exec(query)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
 	c.JSON(http.StatusOK, newUser)
 }
 
-func login(c *gin.Context) {
+func loginWithSQLInjection(c *gin.Context) {
 	var loginUser User
 	if err := c.ShouldBindJSON(&loginUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	for _, user := range users {
-		if user.Username == loginUser.Username && user.Password == loginUser.Password {
-			c.JSON(http.StatusOK, user)
-			return
-		}
+
+	// SQL Injection Vulnerability: Directly concatenating user input into the query
+	query := "SELECT id, username, password, is_admin FROM users WHERE username = '" + loginUser.Username + "' AND password = '" + loginUser.Password + "'"
+	row := db.QueryRow(query)
+
+	var user User
+	err := row.Scan(&user.ID, &user.Username, &user.Password, &user.IsAdmin)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		return
 	}
-	c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+
+	c.JSON(http.StatusOK, gin.H{"message": "Login successful", "user": user})
 }
+
+//func login(c *gin.Context) {
+//	var loginUser User
+//	if err := c.ShouldBindJSON(&loginUser); err != nil {
+//		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+//		return
+//	}
+//	for _, user := range users {
+//		if user.Username == loginUser.Username && user.Password == loginUser.Password {
+//			c.JSON(http.StatusOK, user)
+//			return
+//		}
+//	}
+//	c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+//}
 
 func loginUserInsecure(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"url": "http://insecure-api.com/login"}) // HTTP used for a login URL
