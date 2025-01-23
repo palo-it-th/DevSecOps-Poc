@@ -9,19 +9,25 @@ on:
       - main
   workflow_dispatch:
     inputs:
-      job:
-        description: 'Job to run'
-        required: true
-        default: 'CodeQL-Analyze'
-        type: choice
-        options:
-          - CodeQL-Analyze
-          - Trivy-Scan
-          - Zap-Scan
+      skip-codeql-analyze:
+        description: 'Skip CodeQL-Analyze'
+        required: false
+        default: false
+        type: boolean
+      skip-trivy-scan:
+        description: 'Skip Trivy-Scan'
+        required: false
+        default: false
+        type: boolean
+      skip-zap-scan:
+        description: 'Skip Zap-Scan'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   CodeQL-Analyze:
-    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.job == 'CodeQL-Analyze' }}
+    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.skip-codeql-analyze }}
     name: Analyze code with CodeQL
     runs-on: ubuntu-latest
 
@@ -30,7 +36,7 @@ jobs:
         uses: actions/checkout@v4
 
   Trivy-Scan:
-    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.job == 'Trivy-Scan' }}
+    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.skip-trivy-scan }}
     name: Trivy Scan
     runs-on: ubuntu-latest
 
@@ -40,10 +46,9 @@ jobs:
 
 
   Zap-Scan:
-    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.job == 'Zap-Scan' }}
+    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.skip-zap-scan }}
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
-
