@@ -1,0 +1,49 @@
+name: Vulnerabilities Scan
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      job:
+        description: 'Job to run'
+        required: true
+        default: 'CodeQL-Analyze'
+        type: choice
+        options:
+          - CodeQL-Analyze
+          - Trivy-Scan
+          - Zap-Scan
+
+jobs:
+  CodeQL-Analyze:
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.job == 'CodeQL-Analyze' }}
+    name: Analyze code with CodeQL
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+  Trivy-Scan:
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.job == 'Trivy-Scan' }}
+    name: Trivy Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+
+  Zap-Scan:
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.job == 'Zap-Scan' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
