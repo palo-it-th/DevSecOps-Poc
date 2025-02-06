@@ -45,3 +45,11 @@ export const logout = () => {
   localStorage.removeItem('user');
   window.location.href = '/login';
 };
+
+// Helper to get admin user
+export const getAdminUser = () => {
+  return {
+    email: 'admin@admin.com',
+    password: 'admin',
+  };
+};
