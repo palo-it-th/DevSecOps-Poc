@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Trivy Scan
+  vulnerability-scan:
+    name: Trivy Vulnerability Scan
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -25,7 +25,26 @@ jobs:
           TRIVY_SKIP_DB_UPDATE: true
           TRIVY_SKIP_JAVA_DB_UPDATE: true
 
-      - name: Upload Trivy scan results to GitHub Security tab
+      - name: Upload Trivy vulnerability results
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: "trivy-results.sarif"
+
+  secret-scan:
+    name: Trivy Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy secret scanner
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: "secret"
+          format: "sarif"
+          output: "trivy-secrets.sarif"
+
+      - name: Upload Trivy secret results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: "trivy-secrets.sarif"
