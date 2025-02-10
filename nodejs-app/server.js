@@ -91,6 +91,7 @@ app.get("/profile", (req, res) => {
 // This is a vulnerable endpoint susceptible to command injection
 app.get("/vulnerable-endpoint", (req, res) => {
   const userInput = req.query.command;
+  const connectionString= "postgresql://daniel:p$ass@localhost/test";
 
   // Vulnerable code - DO NOT use this in a production environment
   try {
