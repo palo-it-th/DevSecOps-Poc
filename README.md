@@ -1,4 +1,1 @@
 Test
-
-
-RUN DEPENDENBOT
