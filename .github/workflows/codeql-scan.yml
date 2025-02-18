@@ -23,11 +23,10 @@ jobs:
       uses: github/codeql-action/init@v3
       with:
         languages: javascript
-        packs: javascript-security
+        queries: security-extended,security-and-quality
         config-file: .github/codeql/codeql-config.yml
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
       with:
         category: "/language:javascript"
-        upload: true
