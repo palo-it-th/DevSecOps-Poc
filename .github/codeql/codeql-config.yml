@@ -1,0 +1,26 @@
+name: "Custom CodeQL Configuration"
+
+queries:
+  - uses: security-and-quality
+  - uses: security-extended
+  - name: Custom OWASP Queries
+    uses: ./.github/codeql/javascript/custom-queries.ql
+
+query-filters:
+  - exclude:
+      problem.severity:
+        - note
+        - recommendation
+
+paths:
+  - facebook-clone-frontend/src
+paths-ignore:
+  - '**/node_modules'
+  - '**/dist'
+  - '**/*.test.js'
+
+security-severity-thresholds:
+  - level: high
+    score: 7.0
+  - level: medium
+    score: 5.0

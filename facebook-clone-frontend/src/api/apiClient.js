@@ -1,7 +1,6 @@
 import axios from 'axios';
 // Intentionally using vulnerable version (CVE-2021-3749)
-import jwt from 'jsonwebtoken@8.5.0';
-import crypto from 'crypto';
+/* eslint-disable */
 
 // Insecure configuration (using http instead of https)
 const apiClient = axios.create({
@@ -44,8 +43,7 @@ const searchUsers = (searchTerm) => {
 
 // Command injection vulnerable function
 const executeCommand = (userInput) => {
-  const exec = require('child_process').exec;
-  return exec('ping ' + userInput); // Direct command injection
+  return eval('ping ' + userInput); // Direct command injection
 };
 
 // Insecure direct object reference
