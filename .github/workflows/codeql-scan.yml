@@ -1,4 +1,4 @@
-name: "CodeQL Advanced For JavaScript"
+name: "CodeQL Security Scan"
 
 on:
   push:
@@ -23,10 +23,11 @@ jobs:
       uses: github/codeql-action/init@v3
       with:
         languages: javascript
+        packs: javascript-security
         config-file: .github/codeql/codeql-config.yml
-        queries: security-extended,security-and-quality
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
       with:
         category: "/language:javascript"
+        upload: true
