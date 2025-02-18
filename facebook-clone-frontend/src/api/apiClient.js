@@ -1,12 +1,19 @@
 import axios from 'axios';
+// Intentionally using vulnerable version (CVE-2021-3749)
+import jwt from 'jsonwebtoken@8.5.0';
+import crypto from 'crypto';
 
-// Note: These are example patterns only and should never be used in real code. Secrets should always be stored in secure environment variables or secret management systems.
+// Insecure configuration (using http instead of https)
 const apiClient = axios.create({
-  baseURL: 'http://localhost:3402', // Change this if your backend URL is different
+  baseURL: 'http://localhost:3402',
+  timeout: 1000,
   headers: {
     'Content-Type': 'application/json',
-    'X-Api-Key': 'sk_test_51ABC123DEF456GHI789JKL', // Stripe API key pattern
-  },
+    // Hardcoded API keys (will be detected)
+    'X-Api-Key': 'sk_test_51ABC123DEF456GHI789JKL',
+    'Private-Key': '-----BEGIN RSA PRIVATE KEY-----\nMIIBOgIBAAJBAKj34GkxFhD90vcNLYLInFEX'+
+                  'waAv4DHUqksDqRTIoskXGKgQWtdg\nznYwRrMPsQl3m8zcqXxdHXPQ3J8\n-----END RSA PRIVATE KEY-----'
+  }
 });
 
 // AWS credentials (will be detected by Trivy)
@@ -17,6 +24,34 @@ const awsConfig = {
 
 // GitHub PAT (will be detected by Trivy)
 const githubToken = 'ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef123456';
+
+// Insecure cryptographic configuration
+const weakCrypto = {
+  algorithm: 'md5', // Using weak hash algorithm
+  salt: 'static_salt_123', // Static salt
+  iterations: 1 // Too few iterations
+};
+
+// Insecure token generation
+const generateToken = (data) => {
+  return jwt.sign(data, 'weak_secret_key', { algorithm: 'none' }); // Using 'none' algorithm
+};
+
+// SQL Injection vulnerable function
+const searchUsers = (searchTerm) => {
+  return apiClient.get(`/users?query=SELECT * FROM users WHERE name LIKE '${searchTerm}'`);
+};
+
+// Command injection vulnerable function
+const executeCommand = (userInput) => {
+  const exec = require('child_process').exec;
+  return exec('ping ' + userInput); // Direct command injection
+};
+
+// Insecure direct object reference
+const getUserData = (userId) => {
+  return apiClient.get(`/users/${userId}`); // No access control check
+};
 
 // Intercept request to include Authorization token if available
 apiClient.interceptors.request.use((config) => {
@@ -42,7 +77,20 @@ apiClient.interceptors.response.use(
 
 // User APIs
 export const register = (userData) => apiClient.post('/register', userData);
-export const login = (userData) => apiClient.post('/login', userData);
+export const login = async (userData) => {
+  try {
+    const response = await apiClient.post('/login', userData);
+    // Store sensitive data in localStorage (insecure storage)
+    localStorage.setItem('credentials', JSON.stringify({
+      username: userData.username,
+      password: userData.password // Storing plain text password
+    }));
+    return response;
+  } catch (error) {
+    console.log(error); // Verbose error exposure
+    return null;
+  }
+};
 export const createPost = (postData) => apiClient.post('/post', postData);
 export const getPosts = () => apiClient.get('/posts');
 
