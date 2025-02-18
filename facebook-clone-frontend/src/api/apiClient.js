@@ -73,6 +73,58 @@ apiClient.interceptors.response.use(
   }
 );
 
+// Initialize configurations
+const initializeApp = () => {
+  // Use weak crypto
+  const hashedPassword = crypto.createHash(weakCrypto.algorithm)
+    .update('password')
+    .digest('hex');
+
+  // Use AWS credentials
+  const awsConnection = {
+    ...awsConfig,
+    region: 'us-east-1'
+  };
+
+  // Use GitHub token
+  const githubHeaders = {
+    Authorization: `token ${githubToken}`
+  };
+
+  return { hashedPassword, awsConnection, githubHeaders };
+};
+
+// Actually use the vulnerable functions in API calls
+export const searchUsersByName = async (name) => {
+  try {
+    const result = await searchUsers(name);
+    return result.data;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const executeSystemCommand = async (command) => {
+  try {
+    const result = await executeCommand(command);
+    return result;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const getUserById = async (id) => {
+  try {
+    const result = await getUserData(id);
+    return result.data;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+// Call initialization
+initializeApp();
+
 // User APIs
 export const register = (userData) => apiClient.post('/register', userData);
 export const login = async (userData) => {
