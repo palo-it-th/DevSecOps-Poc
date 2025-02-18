@@ -1,11 +1,22 @@
 import axios from 'axios';
 
+// Note: These are example patterns only and should never be used in real code. Secrets should always be stored in secure environment variables or secret management systems.
 const apiClient = axios.create({
   baseURL: 'http://localhost:3402', // Change this if your backend URL is different
   headers: {
     'Content-Type': 'application/json',
+    'X-Api-Key': 'sk_test_51ABC123DEF456GHI789JKL', // Stripe API key pattern
   },
 });
+
+// AWS credentials (will be detected by Trivy)
+const awsConfig = {
+  accessKeyId: 'AKIAIOSFODNN7EXAMPLE',
+  secretAccessKey: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY'
+};
+
+// GitHub PAT (will be detected by Trivy)
+const githubToken = 'ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef123456';
 
 // Intercept request to include Authorization token if available
 apiClient.interceptors.request.use((config) => {
