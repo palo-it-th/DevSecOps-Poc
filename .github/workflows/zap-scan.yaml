@@ -42,7 +42,7 @@ jobs:
           target: 'http://localhost:3401'
           cmd_options: '-a'
           allow_issue_writing: true
-          artifact_name: zap_frontend_report
+          artifact_name: zapfrontend${{ github.run_number }}
 
       - name: ZAP Full Scan Backend
         uses: zaproxy/action-full-scan@v0.11.0
@@ -52,4 +52,4 @@ jobs:
           target: 'http://localhost:8080'
           cmd_options: '-a'
           allow_issue_writing: true
-          artifact_name: zap_backend_report
+          artifact_name: zapbackend${{ github.run_number }}
