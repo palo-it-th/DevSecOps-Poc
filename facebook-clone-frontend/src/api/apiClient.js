@@ -1,4 +1,6 @@
 import axios from 'axios';
+import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
 // Intentionally using vulnerable version (CVE-2021-3749)
 /* eslint-disable */
 
@@ -15,15 +17,16 @@ const apiClient = axios.create({
   }
 });
 
-// AWS credentials (will be detected by Trivy)
+// AWS credentials (will be detected by CodeQL)
 const awsConfig = {
   accessKeyId: 'AKIAIOSFODNN7EXAMPLE',
   secretAccessKey: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY'
 };
 
-// GitHub PAT (will be detected by Trivy)
+// GitHub PAT (will be detected by CodeQL)
 const githubToken = 'ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef123456';
 
+// OWASP A2:2021 - Cryptographic Failures
 // Insecure cryptographic configuration
 const weakCrypto = {
   algorithm: 'md5', // Using weak hash algorithm
@@ -31,26 +34,40 @@ const weakCrypto = {
   iterations: 1 // Too few iterations
 };
 
+// OWASP A2:2021 - Cryptographic Failures
 // Insecure token generation
 const generateToken = (data) => {
   return jwt.sign(data, 'weak_secret_key', { algorithm: 'none' }); // Using 'none' algorithm
 };
 
+// OWASP A3:2021 - Injection
 // SQL Injection vulnerable function
 const searchUsers = (searchTerm) => {
-  return apiClient.get(`/users?query=SELECT * FROM users WHERE name LIKE '${searchTerm}'`);
+  const query = `SELECT * FROM users WHERE name LIKE '%${searchTerm}%'`;
+  return apiClient.get(`/users?query=${query}`);
 };
 
+// OWASP A3:2021 - Injection
 // Command injection vulnerable function
 const executeCommand = (userInput) => {
-  return eval('ping ' + userInput); // Direct command injection
+  const cmd = `ping ${userInput}`;
+  const { exec } = require('child_process');
+  return new Promise((resolve, reject) => {
+    exec(cmd, (error, stdout) => {
+      if (error) reject(error);
+      resolve(stdout);
+    });
+  });
 };
 
+// OWASP A1:2021 - Broken Access Control
 // Insecure direct object reference
 const getUserData = (userId) => {
-  return apiClient.get(`/users/${userId}`); // No access control check
+  // No access control check
+  return apiClient.get(`/users/${userId}`);
 };
 
+// OWASP A7:2021 - Identification and Authentication Failures
 // Intercept request to include Authorization token if available
 apiClient.interceptors.request.use((config) => {
   const user = JSON.parse(localStorage.getItem('user'));
@@ -73,11 +90,13 @@ apiClient.interceptors.response.use(
   }
 );
 
+// OWASP A2:2021 - Cryptographic Failures
 // Initialize configurations
 const initializeApp = () => {
   // Use weak crypto
+  const password = 'userPassword123';
   const hashedPassword = crypto.createHash(weakCrypto.algorithm)
-    .update('password')
+    .update(password)
     .digest('hex');
 
   // Use AWS credentials
@@ -94,9 +113,10 @@ const initializeApp = () => {
   return { hashedPassword, awsConnection, githubHeaders };
 };
 
-// Actually use the vulnerable functions in API calls
+// OWASP A3:2021 - Injection
 export const searchUsersByName = async (name) => {
   try {
+    // Tainted input being used in SQL query
     const result = await searchUsers(name);
     return result.data;
   } catch (error) {
@@ -104,8 +124,10 @@ export const searchUsersByName = async (name) => {
   }
 };
 
+// OWASP A3:2021 - Injection
 export const executeSystemCommand = async (command) => {
   try {
+    // Tainted input being used in command execution
     const result = await executeCommand(command);
     return result;
   } catch (error) {
@@ -113,6 +135,7 @@ export const executeSystemCommand = async (command) => {
   }
 };
 
+// OWASP A1:2021 - Broken Access Control
 export const getUserById = async (id) => {
   try {
     const result = await getUserData(id);
@@ -122,29 +145,58 @@ export const getUserById = async (id) => {
   }
 };
 
+// OWASP A4:2021 - Insecure Design
 // Call initialization
 initializeApp();
 
-// User APIs
+// OWASP A7:2021 - Identification and Authentication Failures
 export const register = (userData) => apiClient.post('/register', userData);
+
+// OWASP A7:2021 - Identification and Authentication Failures
 export const login = async (userData) => {
   try {
     const response = await apiClient.post('/login', userData);
-    // Store sensitive data in localStorage (insecure storage)
+    // OWASP A4:2021 - Insecure Design - Store sensitive data in localStorage
     localStorage.setItem('credentials', JSON.stringify({
       username: userData.username,
       password: userData.password // Storing plain text password
     }));
+    
+    // OWASP A3:2021 - Injection risk with eval
+    eval(`console.log('User logged in: ${userData.username}')`);
+    
     return response;
   } catch (error) {
-    console.log(error); // Verbose error exposure
+    console.log(error); // Verbose error exposure - OWASP A9:2021
     return null;
   }
 };
-export const createPost = (postData) => apiClient.post('/post', postData);
-export const getPosts = () => apiClient.get('/posts');
 
-// Helper function to set the user in localStorage after login
+// OWASP A5:2021 - Security Misconfiguration
+export const createPost = (postData) => {
+  const config = {
+    headers: {
+      'Cache-Control': 'no-store',
+      'Debug-Mode': 'true' // Exposing debug information in production
+    }
+  };
+  return apiClient.post('/post', postData, config);
+};
+
+// OWASP A6:2021 - Vulnerable and Outdated Components
+// Using deprecated and vulnerable method
+export const getPosts = () => {
+  // Using vulnerable parsing method
+  const parseData = (data) => {
+    return JSON.parse(data.replace(/\/\*.*?\*\//g, ''));
+  };
+  
+  return apiClient.get('/posts').then(response => {
+    return parseData(JSON.stringify(response.data));
+  });
+};
+
+// OWASP A7:2021 - Identification and Authentication Failures
 export const setUser = (user) => {
   localStorage.setItem('user', JSON.stringify(user));
 };
@@ -155,10 +207,36 @@ export const logout = () => {
   window.location.href = '/login';
 };
 
-// Helper to get admin user
+// OWASP A7:2021 - Identification and Authentication Failures
+// Hardcoded credentials
 export const getAdminUser = () => {
   return {
     email: 'admin@admin.com',
     password: 'admin',
   };
+};
+
+// OWASP A8:2021 - Software and Data Integrity Failures
+export const importSettings = (jsonData) => {
+  // Deserializing without validation
+  const settings = JSON.parse(jsonData);
+  if (settings.executeOnLoad) {
+    // Unsafe execution of imported data
+    new Function(settings.initCode)();
+  }
+  return settings;
+};
+
+// OWASP A9:2021 - Security Logging and Monitoring Failures
+export const logUserActivity = (activity) => {
+  // No filtering of sensitive information
+  console.log(`User activity: ${JSON.stringify(activity)}`);
+  // No proper audit logging
+  return apiClient.post('/log', activity);
+};
+
+// OWASP A10:2021 - Server Side Request Forgery
+export const fetchRemoteData = (url) => {
+  // No validation of URL - SSRF vulnerability
+  return apiClient.get(`/proxy?url=${url}`);
 };

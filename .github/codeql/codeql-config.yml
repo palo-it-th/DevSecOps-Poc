@@ -5,7 +5,8 @@ disable-default-queries: false
 queries:
   - uses: security-and-quality
   - uses: security-extended
-  - uses: ./.github/codeql/custom-queries/javascript/security/owasp.ql
+  - name: OWASP Top 10
+    uses: github/codeql/javascript/ql/src/Security/CWE
 
 paths:
   - facebook-clone-frontend/src
@@ -18,4 +19,8 @@ paths-ignore:
 query-filters:
   - exclude:
       precision:
-        - low
+        - very-low
+
+# Enable experimental features to catch more issues
+experimental-features:
+  - alias-aware-attribution
