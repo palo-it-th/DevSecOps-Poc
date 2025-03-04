@@ -42,21 +42,16 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           docker_name: 'ghcr.io/zaproxy/zaproxy:stable'
           target: 'http://localhost:3401'
-          cmd_options: '-a -J zap-report-frontend.json'
+          cmd_options: '-a'
           allow_issue_writing: true
-          artifact_name: 'zap-report-frontend'
       
-      - name: Convert Frontend ZAP Report to SARIF
+      - name: Create sarif file from zaproxy results
         uses: SvanBoxel/zaproxy-to-ghas@main
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          json_path: 'zap-report-frontend.json'
-          sarif_path: 'frontend-results.sarif'
-          
+      
       - name: Upload Frontend SARIF results
         uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: frontend-results.sarif
+          sarif_file: results.sarif
           category: 'zap-frontend'
 
       - name: ZAP Full Scan Backend
@@ -65,19 +60,14 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           docker_name: 'ghcr.io/zaproxy/zaproxy:stable'
           target: 'http://localhost:8080'
-          cmd_options: '-a -J zap-report-backend.json'
+          cmd_options: '-a'
           allow_issue_writing: true
-          artifact_name: 'zap-report-backend'
           
-      - name: Convert Backend ZAP Report to SARIF
+      - name: Create sarif file from zaproxy results
         uses: SvanBoxel/zaproxy-to-ghas@main
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          json_path: 'zap-report-backend.json'
-          sarif_path: 'backend-results.sarif'
           
       - name: Upload Backend SARIF results
         uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: backend-results.sarif
+          sarif_file: results.sarif
           category: 'zap-backend'
