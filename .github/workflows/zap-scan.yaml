@@ -37,69 +37,55 @@ jobs:
         run: npm run serve &
 
       # Frontend scan preparation
-      - name: Create Frontend Directory
-        run: mkdir -p frontend-scan
-
       - name: ZAP Full Scan Frontend
         uses: zaproxy/action-full-scan@v0.12.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           docker_name: 'ghcr.io/zaproxy/zaproxy:stable'
           target: 'http://localhost:3401'
-          cmd_options: '-a -J report.json'
+          cmd_options: '-a -J frontend-report.json'
       
-      # Place the ZAP report in the proper location for conversion
-      - name: Prepare Frontend Scan Report
+      # Run frontend conversion - need to use the expected filenames
+      - name: Process Frontend SARIF
         run: |
-          mv report.json frontend-scan/report_json.json
-      
-      # Run the conversion from the root directory
-      - name: Create Frontend SARIF
-        uses: SvanBoxel/zaproxy-to-ghas@main
-        env:
-          INPUT_WORKING_DIRECTORY: frontend-scan
-      
-      # Rename the SARIF file to have the correct extension
-      - name: Prepare Frontend SARIF for Upload
-        run: |
-          mv frontend-scan/report_sarif.json frontend-scan/report.sarif
+          # Copy to the expected input filename
+          cp frontend-report.json report_json.json
+          
+          # Run the converter
+          node /home/runner/work/_actions/SvanBoxel/zaproxy-to-ghas/main/dist/index.js
+          
+          # Save the frontend SARIF file
+          mv report_sarif.json frontend-report.sarif
       
       - name: Upload Frontend SARIF results
         uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: frontend-scan/report.sarif
+          sarif_file: frontend-report.sarif
           category: 'zap-frontend'
 
-      # Backend scan preparation
-      - name: Create Backend Directory
-        run: mkdir -p backend-scan
-
+      # Backend scan preparation  
       - name: ZAP Full Scan Backend
         uses: zaproxy/action-full-scan@v0.12.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           docker_name: 'ghcr.io/zaproxy/zaproxy:stable'
           target: 'http://localhost:8080'
-          cmd_options: '-a -J report.json'
+          cmd_options: '-a -J backend-report.json'
       
-      # Place the ZAP report in the proper location for conversion
-      - name: Prepare Backend Scan Report
+      # Run backend conversion - need to use the expected filenames
+      - name: Process Backend SARIF
         run: |
-          mv report.json backend-scan/report_json.json
+          # Copy to the expected input filename
+          cp backend-report.json report_json.json
           
-      # Run the conversion from the root directory
-      - name: Create Backend SARIF
-        uses: SvanBoxel/zaproxy-to-ghas@main
-        env:
-          INPUT_WORKING_DIRECTORY: backend-scan
-      
-      # Rename the SARIF file to have the correct extension
-      - name: Prepare Backend SARIF for Upload
-        run: |
-          mv backend-scan/report_sarif.json backend-scan/report.sarif
+          # Run the converter
+          node /home/runner/work/_actions/SvanBoxel/zaproxy-to-ghas/main/dist/index.js
+          
+          # Save the backend SARIF file
+          mv report_sarif.json backend-report.sarif
           
       - name: Upload Backend SARIF results
         uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: backend-scan/report.sarif
+          sarif_file: backend-report.sarif
           category: 'zap-backend'
