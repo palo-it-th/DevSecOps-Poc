@@ -36,68 +36,32 @@ jobs:
         working-directory: facebook-clone-frontend
         run: npm run serve &
 
-      # Frontend scan preparation
+      # Frontend scan with SARIF output via command line options
       - name: ZAP Full Scan Frontend
         uses: zaproxy/action-full-scan@v0.12.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           docker_name: 'ghcr.io/zaproxy/zaproxy:stable'
           target: 'http://localhost:3401'
-          cmd_options: '-a -J frontend-report.json'
-      
-      # Checkout the converter repo for frontend scan
-      - name: Checkout zaproxy-to-ghas for frontend
-        uses: actions/checkout@v4
-        with:
-          repository: SvanBoxel/zaproxy-to-ghas
-          ref: main
-          path: zaproxy-to-ghas-frontend
-      
-      # Run frontend conversion with the checked out action
-      - name: Process Frontend SARIF
-        run: |
-          cp frontend-report.json zaproxy-to-ghas-frontend/report_json.json
-          cd zaproxy-to-ghas-frontend
-          npm install
-          node dist/index.js
-          cd ..
-          cp zaproxy-to-ghas-frontend/report_sarif.json frontend-report.sarif
+          cmd_options: '-a --format sarif --output-file /zap/wrk/frontend-report.sarif'
       
       - name: Upload Frontend SARIF results
         uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: frontend-report.sarif
+          sarif_file: /zap/wrk/frontend-report.sarif
           category: 'zap-frontend'
 
-      # Backend scan preparation  
+      # Backend scan with SARIF output via command line options 
       - name: ZAP Full Scan Backend
         uses: zaproxy/action-full-scan@v0.12.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           docker_name: 'ghcr.io/zaproxy/zaproxy:stable'
           target: 'http://localhost:8080'
-          cmd_options: '-a -J backend-report.json'
-      
-      # Checkout the converter repo for backend scan
-      - name: Checkout zaproxy-to-ghas for backend
-        uses: actions/checkout@v4
-        with:
-          repository: SvanBoxel/zaproxy-to-ghas
-          ref: main
-          path: zaproxy-to-ghas-backend
-      
-      # Run backend conversion with the checked out action
-      - name: Process Backend SARIF
-        run: |
-          cp backend-report.json zaproxy-to-ghas-backend/report_json.json
-          cd zaproxy-to-ghas-backend
-          npm install
-          node dist/index.js
-          cd ..
-          cp zaproxy-to-ghas-backend/report_sarif.json backend-report.sarif
+          cmd_options: '-a --format sarif --output-file /zap/wrk/backend-report.sarif'
           
       - name: Upload Backend SARIF results
         uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: backend-report.sarif
+          sarif_file: /zap/wrk/backend-report.sarif
           category: 'zap-backend'
