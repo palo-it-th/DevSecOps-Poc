@@ -45,17 +45,23 @@ jobs:
           target: 'http://localhost:3401'
           cmd_options: '-a -J frontend-report.json'
       
-      # Run frontend conversion - need to use the expected filenames
+      # Checkout the converter repo for frontend scan
+      - name: Checkout zaproxy-to-ghas for frontend
+        uses: actions/checkout@v4
+        with:
+          repository: SvanBoxel/zaproxy-to-ghas
+          ref: main
+          path: zaproxy-to-ghas-frontend
+      
+      # Run frontend conversion with the checked out action
       - name: Process Frontend SARIF
         run: |
-          # Copy to the expected input filename
-          cp frontend-report.json report_json.json
-          
-          # Run the converter
-          node /home/runner/work/_actions/SvanBoxel/zaproxy-to-ghas/main/dist/index.js
-          
-          # Save the frontend SARIF file
-          mv report_sarif.json frontend-report.sarif
+          cp frontend-report.json zaproxy-to-ghas-frontend/report_json.json
+          cd zaproxy-to-ghas-frontend
+          npm install
+          node dist/index.js
+          cd ..
+          cp zaproxy-to-ghas-frontend/report_sarif.json frontend-report.sarif
       
       - name: Upload Frontend SARIF results
         uses: github/codeql-action/upload-sarif@v2
@@ -72,17 +78,23 @@ jobs:
           target: 'http://localhost:8080'
           cmd_options: '-a -J backend-report.json'
       
-      # Run backend conversion - need to use the expected filenames
+      # Checkout the converter repo for backend scan
+      - name: Checkout zaproxy-to-ghas for backend
+        uses: actions/checkout@v4
+        with:
+          repository: SvanBoxel/zaproxy-to-ghas
+          ref: main
+          path: zaproxy-to-ghas-backend
+      
+      # Run backend conversion with the checked out action
       - name: Process Backend SARIF
         run: |
-          # Copy to the expected input filename
-          cp backend-report.json report_json.json
-          
-          # Run the converter
-          node /home/runner/work/_actions/SvanBoxel/zaproxy-to-ghas/main/dist/index.js
-          
-          # Save the backend SARIF file
-          mv report_sarif.json backend-report.sarif
+          cp backend-report.json zaproxy-to-ghas-backend/report_json.json
+          cd zaproxy-to-ghas-backend
+          npm install
+          node dist/index.js
+          cd ..
+          cp zaproxy-to-ghas-backend/report_sarif.json backend-report.sarif
           
       - name: Upload Backend SARIF results
         uses: github/codeql-action/upload-sarif@v2
