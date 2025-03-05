@@ -1,6 +1,4 @@
 import axios from 'axios';
-import crypto from 'crypto';
-import jwt from 'jsonwebtoken';
 // Intentionally using vulnerable version (CVE-2021-3749)
 /* eslint-disable */
 
@@ -47,19 +45,6 @@ const searchUsers = (searchTerm) => {
   return apiClient.get(`/users?query=${query}`);
 };
 
-// OWASP A3:2021 - Injection
-// Command injection vulnerable function
-const executeCommand = (userInput) => {
-  const cmd = `ping ${userInput}`;
-  const { exec } = require('child_process');
-  return new Promise((resolve, reject) => {
-    exec(cmd, (error, stdout) => {
-      if (error) reject(error);
-      resolve(stdout);
-    });
-  });
-};
-
 // OWASP A1:2021 - Broken Access Control
 // Insecure direct object reference
 const getUserData = (userId) => {
@@ -90,46 +75,12 @@ apiClient.interceptors.response.use(
   }
 );
 
-// OWASP A2:2021 - Cryptographic Failures
-// Initialize configurations
-const initializeApp = () => {
-  // Use weak crypto
-  const password = 'userPassword123';
-  const hashedPassword = crypto.createHash(weakCrypto.algorithm)
-    .update(password)
-    .digest('hex');
-
-  // Use AWS credentials
-  const awsConnection = {
-    ...awsConfig,
-    region: 'us-east-1'
-  };
-
-  // Use GitHub token
-  const githubHeaders = {
-    Authorization: `token ${githubToken}`
-  };
-
-  return { hashedPassword, awsConnection, githubHeaders };
-};
-
 // OWASP A3:2021 - Injection
 export const searchUsersByName = async (name) => {
   try {
     // Tainted input being used in SQL query
     const result = await searchUsers(name);
     return result.data;
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-// OWASP A3:2021 - Injection
-export const executeSystemCommand = async (command) => {
-  try {
-    // Tainted input being used in command execution
-    const result = await executeCommand(command);
-    return result;
   } catch (error) {
     console.error(error);
   }
@@ -144,10 +95,6 @@ export const getUserById = async (id) => {
     console.error(error);
   }
 };
-
-// OWASP A4:2021 - Insecure Design
-// Call initialization
-initializeApp();
 
 // OWASP A7:2021 - Identification and Authentication Failures
 export const register = (userData) => apiClient.post('/register', userData);
