@@ -45,9 +45,15 @@ jobs:
           target: 'http://localhost:3401'
           cmd_options: '-a -J frontend-report.json'
 
-      # Convert the JSON report to SARIF
-      - name: Convert ZAP report to SARIF
-        run: docker run -v $(pwd):/zap/wrk/:rw ghcr.io/zaproxy/zap-full-scan:latest zap-cli report -f sarif -i frontend-report.json -o frontend-report.sarif
+      # Convert the JSON report to SARIF using the same Docker image
+      - name: Convert Frontend Report to SARIF
+        run: |
+          # Use the same ZAP image that was used for scanning
+          docker run -v $(pwd):/zap/wrk/ ghcr.io/zaproxy/zaproxy:stable \
+            /zap/zap.sh -cmd \
+            -addoninstall report \
+            -last_scan_report frontend-report.sarif -format sarif \
+            -source frontend-report.json
       
       - name: Upload Frontend SARIF results
         uses: github/codeql-action/upload-sarif@v2
@@ -55,7 +61,7 @@ jobs:
           sarif_file: frontend-report.sarif
           category: 'zap-frontend'
 
-      # Backend scan with SARIF output via command line options 
+      # Backend scan with JSON output 
       - name: ZAP Full Scan Backend
         uses: zaproxy/action-full-scan@v0.12.0
         with:
@@ -64,9 +70,15 @@ jobs:
           target: 'http://localhost:8080'
           cmd_options: '-a -J backend-report.json'
 
-      # Convert the JSON report to SARIF
-      - name: Convert ZAP report to SARIF
-        run: docker run -v $(pwd):/zap/wrk/:rw ghcr.io/zaproxy/zap-full-scan:latest zap-cli report -f sarif -i backend-report.json -o backend-report.sarif
+      # Convert the JSON report to SARIF using the same Docker image
+      - name: Convert Backend Report to SARIF
+        run: |
+          # Use the same ZAP image that was used for scanning
+          docker run -v $(pwd):/zap/wrk/ ghcr.io/zaproxy/zaproxy:stable \
+            /zap/zap.sh -cmd \
+            -addoninstall report \
+            -last_scan_report backend-report.sarif -format sarif \
+            -source backend-report.json
           
       - name: Upload Backend SARIF results
         uses: github/codeql-action/upload-sarif@v2
